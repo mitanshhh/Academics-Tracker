@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Tracker</title>
+    <style>
+        /* General Body Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: #ffffff;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #2c3e50;
+        }
+
+        #add-entry-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #add-entry-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* Subjects Grid Container */
+        #subjects-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        /* Individual Subject Card */
+        .subject-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            transition: transform 0.2s;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .subject-card h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 0.5rem;
+        }
+
+        .subject-card h3 {
+            margin-top: 1.5rem;
+            color: #34495e;
+            font-size: 1.1rem;
+        }
+
+        /* List styles for Practicals and Assignments */
+        .entry-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .entry-list li {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .entry-list li.done .entry-text {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+
+        .entry-list input[type="checkbox"] {
+            margin-right: 0.8rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .entry-text {
+            flex-grow: 1;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .entry-list li:hover .remove-btn {
+            opacity: 1;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+        }
+
+        /* Form Styles */
+        #add-entry-form label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+        #add-entry-form input[type="text"],
+        #add-entry-form select {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* --- UPDATED CSS FOR RADIO BUTTONS --- */
+        #add-entry-form .radio-group {
+            margin-top: 0.5rem;
+            display: flex; /* Align options horizontally */
+            gap: 1.5rem; /* Space between "Practical" and "Assignment" */
+            align-items: center;
+            margin-bottom: 1rem; /* Added space below */
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem; /* Space between the text and the radio button */
+        }
+        /* --- END OF UPDATE --- */
+
+        #add-entry-form button {
+            background-color: #2ecc71;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: background-color 0.3s;
+        }
+
+        #add-entry-form button:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h1>My Subject Tracker</h1>
+        <button id="add-entry-btn">➕ Add New Entry</button>
+    </nav>
+
+    <div id="subjects-container">
+        </div>
+
+    <div id="add-entry-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Add a New Entry</h2>
+            <form id="add-entry-form">
+                <label for="subject-select">Select Subject:</label>
+                <select id="subject-select" required>
+                    </select>
+
+                <label>Entry Type:</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <label for="type-practical">Practical</label>
+                        <input type="radio" id="type-practical" name="entry-type" value="Practicals" checked>
+                    </div>
+                    <div class="radio-option">
+                        <label for="type-assignment">Assignment</label>
+                        <input type="radio" id="type-assignment" name="entry-type" value="Assignments">
+                    </div>
+                </div>
+                <label for="entry-name">Entry Name:</label>
+                <input type="text" id="entry-name" placeholder="e.g., Exp 1: Titration" required>
+
+                <button type="submit">Add</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA & INITIALIZATION ---
+            const subjects = ['Chemistry', 'Physics', 'Maths', 'BEE', 'Mechanics', 'CP', 'PCE'];
+            let entries = JSON.parse(localStorage.getItem('subjectEntries')) || {};
+
+            const subjectsContainer = document.getElementById('subjects-container');
+            const modal = document.getElementById('add-entry-modal');
+            const addEntryBtn = document.getElementById('add-entry-btn');
+            const closeBtn = document.querySelector('.close-btn');
+            const addEntryForm = document.getElementById('add-entry-form');
+            const subjectSelect = document.getElementById('subject-select');
+
+            // --- FUNCTIONS ---
+
+            // Function to save the current state to localStorage
+            const saveData = () => {
+                localStorage.setItem('subjectEntries', JSON.stringify(entries));
+            };
+
+            // Function to render all subjects and their entries
+            const render = () => {
+                subjectsContainer.innerHTML = ''; // Clear the container
+                subjects.forEach(subject => {
+                    // Ensure subject has an entry in our data object
+                    if (!entries[subject]) {
+                        entries[subject] = { Practicals: [], Assignments: [] };
+                    }
+
+                    // Create the subject card
+                    const card = document.createElement('div');
+                    card.className = 'subject-card';
+                    card.innerHTML = `
+                        <h2>${subject}</h2>
+                        <h3>Practicals</h3>
+                        <ul class="entry-list" id="practicals-${subject}"></ul>
+                        <h3>Assignments</h3>
+                        <ul class="entry-list" id="assignments-${subject}"></ul>
+                    `;
+                    subjectsContainer.appendChild(card);
+
+                    // Populate practicals
+                    const practicalsList = document.getElementById(`practicals-${subject}`);
+                    entries[subject].Practicals.forEach((entry, index) => {
+                        practicalsList.appendChild(createEntryElement(subject, 'Practicals', entry, index));
+                    });
+
+                    // Populate assignments
+                    const assignmentsList = document.getElementById(`assignments-${subject}`);
+                    entries[subject].Assignments.forEach((entry, index) => {
+                        assignmentsList.appendChild(createEntryElement(subject, 'Assignments', entry, index));
+                    });
+                });
+            };
+
+            // Function to create a single list item (li) element
+            const createEntryElement = (subject, type, entry, index) => {
+                const li = document.createElement('li');
+                li.className = entry.done ? 'done' : '';
+                
+                li.innerHTML = `
+                    <input type="checkbox" ${entry.done ? 'checked' : ''} data-index="${index}" data-subject="${subject}" data-type="${type}">
+                    <span class="entry-text">${entry.name}</span>
+                    <button class="remove-btn" data-index="${index}" data-subject="${subject}" data-type="${type}">✖</button>
+                `;
+                return li;
+            };
+
+            // Function to populate the dropdown in the modal
+            const populateSubjectSelect = () => {
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject;
+                    option.textContent = subject;
+                    subjectSelect.appendChild(option);
+                });
+            };
+
+            // --- EVENT LISTENERS ---
+
+            // Show the modal
+            addEntryBtn.onclick = () => {
+                modal.style.display = 'block';
+            };
+
+            // Hide the modal
+            closeBtn.onclick = () => {
+                modal.style.display = 'none';
+            };
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            };
+
+            // Handle form submission to add new entry
+            addEntryForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const subject = document.getElementById('subject-select').value;
+                const type = document.querySelector('input[name="entry-type"]:checked').value;
+                const name = document.getElementById('entry-name').value;
+
+                if (subject && type && name) {
+                    entries[subject][type].push({ name: name, done: false });
+                    saveData();
+                    render();
+                    addEntryForm.reset();
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Handle clicks on checkboxes and remove buttons
+            subjectsContainer.addEventListener('click', (e) => {
+                const target = e.target;
+                const { index, subject, type } = target.dataset;
+
+                if (target.type === 'checkbox') {
+                    entries[subject][type][index].done = target.checked;
+                    saveData();
+                    render();
+                }
+
+                if (target.classList.contains('remove-btn')) {
+                    if (confirm('Are you sure you want to remove this entry?')) {
+                        entries[subject][type].splice(index, 1);
+                        saveData();
+                        render();
+                    }
+                }
+            });
+
+            // --- INITIAL RENDER ---
+            populateSubjectSelect();
+            render();
+        });
+    </script>
+</body>
+</html>
